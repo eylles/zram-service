@@ -13,7 +13,7 @@ honest
 ## usage
 
 the makefile should put the script in `/etc/init.d/zram` by default, after that
-a simple ```sh sudo update-rc.d zram defaults``` should be enough to activate
+a simple ```sudo update-rc.d zram defaults``` should be enough to activate
 it for the next boot
 
 the service script supports the start, stop, restart and status actions along

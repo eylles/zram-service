@@ -3,7 +3,7 @@ LOCATION = /etc/init.d
 
 install:
 	mkdir -p $(LOCATION)
-	cp -f $(NAME) $(LOCATION)/$(NAME)
+	cp -f zram.sh $(LOCATION)/$(NAME)
 	chmod 755 $(LOCATION)/$(NAME)
 	echo $(NAME) installed in $(LOCATION)
 

@@ -24,6 +24,7 @@ STREAMS=$(grep -c ^processor /proc/cpuinfo)
 ALGORITHM=lz4
 RAM_PERCENTAGE=50
 PRIORITY=100
+MEM_LIMIT_PERCENTAGE=0
 
 # Read configuration variable file if it is present
 [ -r /etc/default/"$ZRAM_CONFIG" ] && . /etc/default/"$ZRAM_CONFIG"
@@ -53,6 +54,10 @@ _start_() {
             sleep 1
         done
 
+        if [ ${MEM_LIMIT_PERCENTAGE} -gt 0 ]; then
+            MEM_LIMIT_SIZE=$(( MEMORY_TOTAL * MEM_LIMIT_PERCENTAGE / 100));
+            echo "${MEM_LIMIT_SIZE}" > /sys/block/zram0/mem_limit
+        fi
         echo "zram device initiated"
         echo "activating device"
         mkswap -L SWAP_ZRAM_0 /dev/zram0 && echo "zram device labeled"

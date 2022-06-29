@@ -29,7 +29,7 @@ _start_() {
     if grep -q zram /proc/swaps; then
         echo "${ZRAM_SERVICE} already running, exiting"
         return 1
-    else 
+    else
 
         modprobe "$ALGORITHM"
         modprobe zram
@@ -59,7 +59,7 @@ _start_() {
 }
 
 _stop_() {
-    if ! zramctl -f; then
+    if ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
         echo "${ZRAM_SERVICE} NOT running, exiting"
         return 1
     else

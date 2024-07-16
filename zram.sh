@@ -1,3 +1,8 @@
+#!/bin/sh
+# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
+if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
+    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true
+fi
 ### BEGIN INIT INFO
 # Provides:          zram
 # Required-Start:    $local_fs

@@ -1,19 +1,11 @@
 #!/bin/sh
-# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
-if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
-    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true
-fi
-### BEGIN INIT INFO
-# Provides:          zram
-# Required-Start:    $local_fs
-# Required-Stop:     $local_fs
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Use compressed RAM as in-memory swap
-# Description:       Use compressed RAM as in-memory swap
-### END INIT INFO
 
-# script settings
+# PATH should only include /usr/* if it runs after the mountnfs.sh
+# script.  Scripts running before mountnfs.sh should remove the /usr/*
+# entries.
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
 # service name
 ZRAM_SERVICE=zram
 # service config file
@@ -90,25 +82,7 @@ _stop_() {
     fi
 }
 
-_stat_() {
-    zramctl
-}
-
-_restart_() {
-    echo "${ZRAM_SERVICE} restarting"
-    echo "${ZRAM_SERVICE} stopping"
-    _stop_
-    sleep 2
-    echo "${ZRAM_SERVICE} starting"
-    _start_
-
-}
-
 case "$1" in
-    "start" | "init" ) _start_ ;;
-    "stop" | "end" ) _stop_ ;;
-    "stat" | "status" ) _stat_ ;;
-    "restart" | "force-restart" ) _restart_ ;;
+    "activate" ) _start_ ;;
+    "deactivate" ) _restart_ ;;
 esac
-
-# End of file

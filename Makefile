@@ -1,14 +1,21 @@
-NAME = zram
-LOCATION = /etc/init.d
+SERV_NAME = zram
+PROG_NAME = zrs
+SERVICE_LOCATION_SYSV = /etc/init.d
+PREFIX = /usr/local
 
 install:
-	mkdir -p $(LOCATION)
-	cp -f zram.sh $(LOCATION)/$(NAME)
-	chmod 755 $(LOCATION)/$(NAME)
-	echo $(NAME) installed in $(LOCATION)
+	mkdir -p $(PREFIX)/sbin
+	cp -f zram.sh  $(PREFIX)/sbin/$(PROG_NAME)
+	chmod 755 $(PREFIX)/sbin/$(PROG_NAME)
+	echo $(PROG_NAME) installed in $(PREFIX)/sbin
+
+	mkdir -p $(SERVICE_LOCATION_SYSV)
+	cp -f zram.is $(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
+	chmod 755 $(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
+	echo $(SERV_NAME) installed in $(SERVICE_LOCATION_SYSV)
 
 uninstall:
-	rm $(NAME) $(LOCATION)/$(NAME)
-	echo $(NAME) uninstalled from $(LOCATION)
+	rm $(SERV_NAME) $(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
+	echo $(NAME) uninstalled from $(SERVICE_LOCATION_SYSV)
 
 .PHONY: install uninstall

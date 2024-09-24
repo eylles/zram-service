@@ -13,7 +13,8 @@ ZRAM_CONFIG=zram-config
 STREAMS=$(grep -c ^processor /proc/cpuinfo)
 
 # defaults
-ALGORITHM=lz4
+default_ALGORITHM=lz4
+ALGORITHM=$default_ALGORITHM
 RAM_PERCENTAGE=50
 PRIORITY=100
 MEM_LIMIT_PERCENTAGE=0
@@ -29,7 +30,12 @@ _start_() {
         return 1
     else
 
-        modprobe "$ALGORITHM"
+        # check algorithm
+        if modprobe -n "$ALGORITHM" 2>/dev/null; then
+            modprobe "$ALGORITHM"
+        else
+            modprobe "$default_ALGORITHM"
+        fi
         modprobe zram
         sleep 1
 

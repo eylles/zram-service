@@ -25,7 +25,7 @@ echo () { printf %s\\n "$*" ; }
 
 _start_() {
     if grep -q zram /proc/swaps; then
-        echo "${ZRAM_SERVICE} already running, exiting"
+        echo "${ZRAM_SERVICE} already set up, exiting"
         return 1
     else
 
@@ -56,7 +56,7 @@ _start_() {
         sleep 1
         swapon -p $PRIORITY /dev/zram0 && echo "zram device activated"
 
-        echo "${ZRAM_SERVICE} started"
+        echo "${ZRAM_SERVICE} all set up"
     fi
 }
 

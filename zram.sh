@@ -12,17 +12,32 @@ ZRAM_SERVICE=zram
 ZRAM_CONFIG=zram-config
 STREAMS=$(grep -c ^processor /proc/cpuinfo)
 
-# defaults
+############
+# defaults #
+############
+
+# algorithm: lz4
 default_ALGORITHM=lz4
 ALGORITHM=$default_ALGORITHM
-RAM_PERCENTAGE=50
-PRIORITY=100
-MEM_LIMIT_PERCENTAGE=0
+# mem percentage: 50
+default_RAM_PERCENTAGE=50
+RAM_PERCENTAGE=$default_RAM_PERCENTAGE
+# swapping priority: 100
+default_PRIORITY=100
+PRIORITY=$default_PRIORITY
+# mem limit percentage: 0
+default_MEM_LIMIT_PERCENTAGE=0
+MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
 
 # Read configuration variable file if it is present
 [ -r /etc/default/"$ZRAM_CONFIG" ] && . /etc/default/"$ZRAM_CONFIG"
 
 echo () { printf %s\\n "$*" ; }
+
+# usage: is_int "number"
+is_int() {
+  printf %d "$1" >/dev/null 2>&1
+}
 
 _start_() {
     if grep -q zram /proc/swaps; then
@@ -51,6 +66,19 @@ _start_() {
         fi
         modprobe zram
         sleep 1
+
+        # check that the numeric values from config are int
+        if ! is_int "$RAM_PERCENTAGE"; then
+            RAM_PERCENTAGE=$default_RAM_PERCENTAGE
+        fi
+
+        if ! is_int "$PRIORITY"; then
+           PRIORITY=$default_PRIORITY
+        fi
+
+        if ! is_int "$MEM_LIMIT_PERCENTAGE"; then
+            MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
+        fi
 
         MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))

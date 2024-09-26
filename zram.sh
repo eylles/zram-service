@@ -30,7 +30,20 @@ _start_() {
         return 1
     else
 
-        # check algorithm
+        # make sure algo from config is valid
+        case "$ALGORITHM" in
+            lzo|lzo-rle|lz4|lz4hc|zstd|deflate|842)
+                : # do nothing
+                ;;
+            *)
+                echo "warning: invalid compression algorithm, using default."
+                echo "algorithm: $default_ALGORITHM"
+                # use default
+                ALGORITHM=$default_ALGORITHM
+                ;;
+        esac
+
+        # check algorithm loads
         if modprobe -n "$ALGORITHM" 2>/dev/null; then
             modprobe "$ALGORITHM"
         else

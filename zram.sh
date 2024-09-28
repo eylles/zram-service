@@ -22,12 +22,18 @@ ALGORITHM=$default_ALGORITHM
 # mem percentage: 50
 default_RAM_PERCENTAGE=50
 RAM_PERCENTAGE=$default_RAM_PERCENTAGE
+ram_perc_min=5
+ram_perc_max=400
 # swapping priority: 100
 default_PRIORITY=100
 PRIORITY=$default_PRIORITY
+priority_min=100
+priority_max=32000
 # mem limit percentage: 0
 default_MEM_LIMIT_PERCENTAGE=0
 MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
+mem_limit_min=0
+mem_limit_max=100
 
 # Read configuration variable file if it is present
 [ -r /etc/default/"$ZRAM_CONFIG" ] && . /etc/default/"$ZRAM_CONFIG"
@@ -101,6 +107,16 @@ _start_() {
         if ! is_int "$MEM_LIMIT_PERCENTAGE"; then
             MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
         fi
+
+        # prevent out of range values
+        RAM_PERCENTAGE=$(min "$RAM_PERCENTAGE" "$ram_perc_min")
+        RAM_PERCENTAGE=$(max "$RAM_PERCENTAGE" "$ram_perc_max")
+
+        PRIORITY=$(min "$PRIORITY" "$priority_min")
+        PRIORITY=$(max "$PRIORITY" "$priority_max")
+
+        MEM_LIMIT_PERCENTAGE=$(min "$MEM_LIMIT_PERCENTAGE" "$mem_limit_min")
+        MEM_LIMIT_PERCENTAGE=$(max "$MEM_LIMIT_PERCENTAGE" "$mem_limit_max")
 
         MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))

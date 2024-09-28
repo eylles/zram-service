@@ -1,8 +1,8 @@
 # ZRAM service
 
-this is a simple init script compatible with sysvinit to set up zram.
+This is a simple init script compatible with sysvinit to set up zram.
 
-this script depends on a posix shell interpreter, core utilities and zramctl
+This script depends on a posix shell interpreter, core utilities and zramctl
 
 
 <p align="center">
@@ -18,17 +18,17 @@ this script depends on a posix shell interpreter, core utilities and zramctl
 
 ## why ?
 
-looked at other services and scripts for using zram and they were a mess to be
+Looked at other services and scripts for using zram and they were a mess to be
 honest
 
 
 ## usage
 
-the makefile should put the script in `/etc/init.d/zram` by default, after that
+The makefile should put the script in `/etc/init.d/zram` by default, after that
 a simple ```sudo update-rc.d zram defaults``` should be enough to activate
 it for the next boot
 
-the service script supports the start, stop, restart and status actions along
+The service script supports the start, stop, restart and status actions along
 the init, end, stat and force-restart aliases.
 
 

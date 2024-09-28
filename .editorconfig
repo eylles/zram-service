@@ -19,7 +19,7 @@ charset = utf-8
 indent_style = space
 indent_size = 4
 
-# line lenght, same as old kernel stipulated
+# line length, same as old kernel stipulated
 max_line_length = 80
 
 [Makefile]

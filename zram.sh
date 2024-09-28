@@ -135,6 +135,7 @@ _start_() {
             MEM_LIMIT_SIZE=$(( MEMORY_TOTAL * MEM_LIMIT_PERCENTAGE / 100));
             echo "${MEM_LIMIT_SIZE}" > /sys/block/zram0/mem_limit
         fi
+
         echo "zram device initiated"
         echo "activating device"
         mkswap -L SWAP_ZRAM_0 /dev/zram0 && echo "zram device labeled"

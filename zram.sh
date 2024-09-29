@@ -67,6 +67,25 @@ max () {
   printf '%d\n' "$result"
 }
 
+# Usage: getval "KEY" file
+# Return: string
+# Description:
+#   Read a KEY=VALUE file and retrieve the Value of the passed KEY
+getval(){
+  # Setting 'IFS' tells 'read' where to split the string.
+  while IFS='=' read -r key val; do
+    # Skip over lines containing comments.
+    # (Lines starting with '#').
+    [ "${key##\#*}" ] || continue
+
+    # '$key' stores the key.
+    # '$val' stores the value.
+    if [ "$key" = "$1" ]; then
+      printf '%s\n' "$val"
+    fi
+  done < "$2"
+}
+
 _start_() {
     if grep -q zram /proc/swaps; then
         echo "${ZRAM_SERVICE} already set up, exiting"

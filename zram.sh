@@ -9,7 +9,7 @@ export PATH
 # service name
 ZRAM_SERVICE=zram
 # service config file
-ZRAM_CONFIG=zram-config
+ZRAM_CONFIG=/etc/default/zram-config
 STREAMS=$(grep -c ^processor /proc/cpuinfo)
 
 ############
@@ -34,9 +34,6 @@ default_MEM_LIMIT_PERCENTAGE=0
 MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
 mem_limit_min=0
 mem_limit_max=100
-
-# Read configuration variable file if it is present
-[ -r /etc/default/"$ZRAM_CONFIG" ] && . /etc/default/"$ZRAM_CONFIG"
 
 echo () { printf %s\\n "$*" ; }
 
@@ -91,6 +88,13 @@ _start_() {
         echo "${ZRAM_SERVICE} already set up, exiting"
         return 1
     else
+        # Read get values from config if present
+        if [ -r "$ZRAM_CONFIG" ]; then
+            ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")
+            RAM_PERCENTAGE=$(getval "RAM_PERCENTAGE" "$ZRAM_CONFIG")
+            PRIORITY=$(getval "PRIORITY" "$ZRAM_CONFIG")
+            MEM_LIMIT_PERCENTAGE=$(getval "MEM_LIMIT_PERCENTAGE" "$ZRAM_CONFIG")
+        fi
 
         # make sure algo from config is valid
         case "$ALGORITHM" in

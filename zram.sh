@@ -165,6 +165,27 @@ _start_() {
         sleep 1
         swapon -p $PRIORITY /dev/zram0 && echo "zram device activated"
 
+        # zram optimizations
+        if [ "$ALGORITHM" = "zstd" ]; then
+            # zstd needs page clusters 0, else it will have higher latency and
+            # reduced IOPS.
+            clust=0
+        else
+            clust=1
+        fi
+        # consecutive page reads in advance, higher values improve compression
+        echo "$clust" > /proc/sys/vm/page-cluster
+        # higher values encourage the kernel to move pages to swap
+        echo "200"    > /proc/sys/vm/swappiness
+        # reclaim dentry and inode caches just half as much as the default 100
+        echo "50"     > /proc/sys/vm/vfs_cache_pressure
+        echo "30"     > /proc/sys/vm/dirty_ratio
+        echo "3"      > /proc/sys/vm/dirty_background_ratio
+        # deactivate watermark boost
+        echo "0"      > /proc/sys/vm/watermark_boost_factor
+        # increase the watermark scale factor
+        echo "125"    > /proc/sys/vm/watermark_scale_factor
+
         echo "${ZRAM_SERVICE} all set up"
     fi
 }

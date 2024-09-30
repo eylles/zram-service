@@ -25,9 +25,9 @@ RAM_PERCENTAGE=$default_RAM_PERCENTAGE
 ram_perc_min=5
 ram_perc_max=400
 # swapping priority: 100
-default_PRIORITY=100
+default_PRIORITY=200
 PRIORITY=$default_PRIORITY
-priority_min=100
+priority_min=200
 priority_max=32000
 # mem limit percentage: 0
 default_MEM_LIMIT_PERCENTAGE=0

@@ -10,7 +10,6 @@ export PATH
 ZRAM_SERVICE=zram
 # service config file
 ZRAM_CONFIG=/etc/default/zram-config
-STREAMS=$(grep -c ^processor /proc/cpuinfo)
 
 ############
 # defaults #
@@ -88,6 +87,9 @@ _start_() {
         echo "${ZRAM_SERVICE} already set up, exiting"
         return 1
     else
+        # calculate streams
+        STREAMS=$(grep -c ^processor /proc/cpuinfo)
+
         # Read get values from config if present
         if [ -r "$ZRAM_CONFIG" ]; then
             ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")

@@ -111,11 +111,14 @@ _start_() {
                 ;;
         esac
 
-        # check algorithm loads
-        if modprobe -n "$ALGORITHM" 2>/dev/null; then
-            modprobe "$ALGORITHM"
-        else
-            modprobe "$default_ALGORITHM"
+        # check if the algorithm is already loaded
+        if grep -q "$ALGORITHM" /proc/modules; then
+            # check if algorithm loads
+            if modprobe -n "$ALGORITHM" 2>/dev/null; then
+                modprobe "$ALGORITHM"
+            else
+                modprobe "$default_ALGORITHM"
+            fi
         fi
         modprobe zram
         sleep 1

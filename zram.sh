@@ -148,27 +148,27 @@ _start_() {
 
         MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
-        ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100))
+        ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100 ))
 
         zramctl -f
 
-        zramctl /dev/zram0 -s $ZRAM_DISK_SIZE -t $STREAMS -a $ALGORITHM
+        zramctl /dev/zram0 -s "$ZRAM_DISK_SIZE" -t "$STREAMS" -a "$ALGORITHM"
 
         echo "waiting for zram device"
         until [ -b /dev/zram0 ]; do
             sleep 1
         done
 
-        if [ ${MEM_LIMIT_PERCENTAGE} -gt 0 ]; then
-            MEM_LIMIT_SIZE=$(( MEMORY_TOTAL * MEM_LIMIT_PERCENTAGE / 100));
+        if [ "${MEM_LIMIT_PERCENTAGE}" -gt 0 ]; then
+            MEM_LIMIT_SIZE=$(( MEMORY_TOTAL * MEM_LIMIT_PERCENTAGE / 100 ))
             echo "${MEM_LIMIT_SIZE}" > /sys/block/zram0/mem_limit
         fi
 
         echo "zram device initiated"
         echo "activating device"
-        mkswap -L SWAP_ZRAM_0 /dev/zram0 && echo "zram device labeled"
+        mkswap -L "SWAP_ZRAM_0" /dev/zram0 && echo "zram device labeled"
         sleep 1
-        swapon -p $PRIORITY /dev/zram0 && echo "zram device activated"
+        swapon -p "$PRIORITY" /dev/zram0 && echo "zram device activated"
 
         # zram optimizations
         if [ "$ALGORITHM" = "zstd" ]; then
@@ -200,7 +200,7 @@ _stop_() {
         echo "${ZRAM_SERVICE} NOT running, exiting"
         return 1
     else
-        for n in $( seq $( grep -c "/dev/zram" /proc/swaps ) )
+        for n in $(seq $(grep -c "/dev/zram" /proc/swaps))
         do
             INDEX=$((n - 1))
             echo "deactivating /dev/zram$INDEX"

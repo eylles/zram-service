@@ -209,7 +209,6 @@ _stop_() {
         wait
         sleep 1
         modprobe -r zram
-        modprobe -r $ALGORITHM
         echo "${ZRAM_SERVICE} stopped"
     fi
 }

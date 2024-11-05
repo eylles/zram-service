@@ -17,38 +17,48 @@ fi
 # service name
 ZRAM_SERVICE=zram
 
-#program
-zrs=placeholder/sbin/zram.sh
-
-echo () { printf %s\\n "$*" ; }
-
-_start_() {
-    $zrs activate
+zrs_start () {
+    echo "${ZRAM_SERVICE} starting"
+    placeholder/sbin/zram.sh "activate"
 }
 
-_stop_() {
-    $zrs deactivate
+zrs_stop () {
+    echo "${ZRAM_SERVICE} stopping"
+    placeholder/sbin/zram.sh "deactivate"
 }
+
 
 _stat_() {
     zramctl
 }
 
-_restart_() {
+zrs_restart () {
     echo "${ZRAM_SERVICE} restarting"
     echo "${ZRAM_SERVICE} stopping"
-    _stop_
+    zrs_stop
     sleep 2
     echo "${ZRAM_SERVICE} starting"
-    _start_
-
+    zrs_start
 }
 
 case "$1" in
-    "start" | "init" ) _start_ ;;
-    "stop" | "end" ) _stop_ ;;
-    "stat" | "status" ) _stat_ ;;
-    "restart" | "force-restart" ) _restart_ ;;
+    start|init)
+        zrs_start
+        ;;
+    stop|end)
+        zrs_stop
+        ;;
+    stat|status)
+        _stat_
+        ;;
+    reload|restart|force-restart|force-reload)
+        zrs_restart
+        ;;
+    *)
+        echo "Usage:"
+        echo "    $(basename $0) { start | stop | restart | reload | status }"
+        exit 1
+        ;;
 esac
 
 # End of file

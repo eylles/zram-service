@@ -38,7 +38,11 @@ echo () { printf %s\\n "$*" ; }
 
 # usage: is_int "number"
 is_int() {
-  printf %d "$1" >/dev/null 2>&1
+    if [ -n "$1" ]; then
+        printf %d "$1" >/dev/null 2>&1
+    else
+        return 1
+    fi
 }
 
 # return type: int

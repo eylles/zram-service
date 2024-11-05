@@ -125,7 +125,7 @@ _start_() {
                 modprobe "$default_ALGORITHM"
             fi
         fi
-        modprobe zram
+        modprobe zram num_devices=1
         sleep 1
 
         # check that the numeric values from config are int
@@ -157,8 +157,6 @@ _start_() {
         MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
         ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100 ))
-
-        zramctl -f
 
         zramctl /dev/zram0 -s "$ZRAM_DISK_SIZE" -t "$STREAMS" -a "$ALGORITHM"
 

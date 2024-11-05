@@ -1,0 +1,6 @@
+# ignore "built" initscript
+zram
+# ignore "built" systemd unit
+zram.service
+# ignore "build" script
+zrs

@@ -31,10 +31,8 @@ _stat_() {
 
 zrs_restart () {
     echo "${ZRAM_SERVICE} restarting"
-    echo "${ZRAM_SERVICE} stopping"
     zrs_stop
     sleep 2
-    echo "${ZRAM_SERVICE} starting"
     zrs_start
 }
 

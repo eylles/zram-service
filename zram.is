@@ -1,8 +1,5 @@
 #!/bin/sh
-# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
-if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
-    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true
-fi
+
 ### BEGIN INIT INFO
 # Provides:          zram
 # Required-Start:    $local_fs
@@ -19,12 +16,12 @@ ZRAM_SERVICE=zram
 
 zrs_start () {
     echo "${ZRAM_SERVICE} starting"
-    placeholder/sbin/zram.sh "activate"
+    placeholder/sbin/zram.sh activate
 }
 
 zrs_stop () {
     echo "${ZRAM_SERVICE} stopping"
-    placeholder/sbin/zram.sh "deactivate"
+    placeholder/sbin/zram.sh deactivate
 }
 
 

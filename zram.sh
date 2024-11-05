@@ -226,6 +226,6 @@ _stop_() {
 }
 
 case "$1" in
-    "activate" ) _start_ ;;
-    "deactivate" ) _restart_ ;;
+    activate|set) _start_ ;;
+    deactivate|unset) _stop_ ;;
 esac

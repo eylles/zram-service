@@ -19,10 +19,27 @@ This script depends on a posix shell interpreter, core utilities and zramctl
 ## why ?
 
 Looked at other services and scripts for using zram and they were a mess to be
-honest
+honest, some did too much others too little, this won't be the be all end all of
+zram scripts and setups but so long as it serves most cases i am satisfied.
 
 
-## usage
+## installation
+
+Install everything:
+```sh
+sudo make install-all
+```
+this will provide:
+|component|default location|description|
+|----|----|----|
+|zrs|`/usr/local/sbin/zrs`|script that does the actual work of config parsing and zram setting|
+|zram|`/etc/init.d/zram`|sysvinit initscript|
+|zram.service|`/etc/systemd/system/zram.service`|systemd unit|
+
+
+## Usage
+
+### sysvinit
 
 The makefile should put the script in `/etc/init.d/zram` by default, after that
 a simple ```sudo update-rc.d zram defaults``` should be enough to activate
@@ -30,6 +47,17 @@ it for the next boot
 
 The service script supports the start, stop, restart and status actions along
 the init, end, stat and force-restart aliases.
+
+A simple `sudo service zram start` will initiate the zram service.
+
+
+### systemd
+
+The makefile should put the unit in `/etc/systemd/system/zram.service` by
+default, all you need is run ```sudo systemctl enable zram``` to activate the
+service for the next boot.
+
+Initiate the service with `sudo systemctl start zram`
 
 
 ## TODO

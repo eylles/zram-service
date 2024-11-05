@@ -22,7 +22,8 @@ ALGORITHM=$default_ALGORITHM
 default_RAM_PERCENTAGE=50
 RAM_PERCENTAGE=$default_RAM_PERCENTAGE
 ram_perc_min=5
-ram_perc_max=400
+# most compression algorithms can achieve 2x compression tops
+ram_perc_max=200
 # swapping priority: 100
 default_PRIORITY=200
 PRIORITY=$default_PRIORITY
@@ -106,7 +107,10 @@ _start_() {
         # make sure algo from config is valid
         case "$ALGORITHM" in
             lzo|lzo-rle|lz4|lz4hc|zstd|deflate|842)
-                : # do nothing
+                # zstd can achieve a 4x compression
+                if [ "$ALGORITHM" = "zstd" ]; then
+                    ram_perc_max=400
+                fi
                 ;;
             *)
                 echo "warning: invalid compression algorithm, using default."

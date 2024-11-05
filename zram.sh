@@ -198,6 +198,12 @@ _start_() {
         # increase the watermark scale factor
         echo "125"    > /proc/sys/vm/watermark_scale_factor
 
+        # set min free kb to %1 of system memory to completely eliminate the
+        # possibility of system freezes
+        MINIMUM=$(awk '/MemTotal/ {printf "%.0f", $2 * 0.01}' /proc/meminfo)
+        CURRENT=$(cat /proc/sys/vm/min_free_kbytes)
+        min "$CURRENT" "$MINIMUM" > /proc/sys/vm/min_free_kbytes
+
         echo "${ZRAM_SERVICE} all set up"
     fi
 }

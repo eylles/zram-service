@@ -96,6 +96,7 @@ _start_() {
 
         # Read get values from config if present
         if [ -r "$ZRAM_CONFIG" ]; then
+            echo "loading config"
             ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")
             RAM_PERCENTAGE=$(getval "RAM_PERCENTAGE" "$ZRAM_CONFIG")
             PRIORITY=$(getval "PRIORITY" "$ZRAM_CONFIG")
@@ -129,14 +130,17 @@ _start_() {
 
         # check that the numeric values from config are int
         if ! is_int "$RAM_PERCENTAGE"; then
+            echo "using default ram percentage: $default_RAM_PERCENTAGE"
             RAM_PERCENTAGE=$default_RAM_PERCENTAGE
         fi
 
         if ! is_int "$PRIORITY"; then
-           PRIORITY=$default_PRIORITY
+            echo "using default priority: $default_PRIORITY"
+            PRIORITY=$default_PRIORITY
         fi
 
         if ! is_int "$MEM_LIMIT_PERCENTAGE"; then
+            echo "using default mem limit: $default_MEM_LIMIT_PERCENTAGE"
             MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
         fi
 
@@ -174,6 +178,7 @@ _start_() {
         sleep 1
         swapon -p "$PRIORITY" /dev/zram0 && echo "zram device activated"
 
+        echo "optimizing zram environment"
         # zram optimizations
         if [ "$ALGORITHM" = "zstd" ]; then
             # zstd needs page clusters 0, else it will have higher latency and

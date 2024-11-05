@@ -1,0 +1,14 @@
+[Unit]
+Description=zram-service
+Documentation=https://github.com/eylles/zram-service
+
+[Service]
+Type=oneshot
+ExecStart=placeholder/sbin/zram.sh activate
+ExecStop=placeholder/sbin/zram.sh deactivate
+EnvironmentFile=-/etc/default/zram-config
+RemainAfterExit=true
+
+
+[Install]
+WantedBy=multi-user.target

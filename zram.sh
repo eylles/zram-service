@@ -233,7 +233,20 @@ _stop_() {
     fi
 }
 
+_status_() {
+    running=0
+    dead=1
+    if ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
+        echo "${ZRAM_SERVICE} is not running"
+        return "$dead"
+    else
+        echo "${ZRAM_SERVICE} is running"
+        return "$running"
+    fi
+}
+
 case "$1" in
     activate|set) _start_ ;;
     deactivate|unset) _stop_ ;;
+    status) _status_ ;;
 esac

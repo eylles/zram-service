@@ -51,4 +51,9 @@ uninstall:
 	echo $(SERV_NAME).service uninstalled from $(SERVICE_LOCATION_SYSD)
 	echo $(PROG_NAME) uninstalled from $(PREFIX)/sbin
 
-.PHONY: install uninstall
+clean:
+	rm $(PROG_NAME)
+	rm $(SERV_NAME)
+	rm $(SERV_NAME).service
+
+.PHONY: install uninstall clean

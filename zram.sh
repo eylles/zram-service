@@ -262,9 +262,16 @@ show_usage () {
     printf '\t%s %s\n' "${myname}" "{activate|set|deactivate|unset|status}"
 }
 
+version="@VERSION"
+
+show_version () {
+    printf '%s\n' "$version"
+}
+
 case "$1" in
     activate|set) _start_ ;;
     deactivate|unset) _stop_ ;;
     status) _status_ ;;
+    version|-v|--version) show_version ;;
     *) show_usage ;;
 esac

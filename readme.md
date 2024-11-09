@@ -37,6 +37,17 @@ this will provide:
 |zram.service|`/etc/systemd/system/zram.service`|systemd unit|
 
 
+### install config
+
+Edit the config.mk file to tweak installation options.
+
+#### SysV init script
+
+This repo provides 2 sysvinit init scripts, a hand written one and one that uses
+Debian's init-d-script framework that provides a Debian and LSB compliant init.d
+script that may be preferred on some environments, you can choose with the
+config.mk file.
+
 ## Usage
 
 ### sysvinit
@@ -62,7 +73,6 @@ Initiate the service with `sudo systemctl start zram`
 
 ## TODO
 
-* make a release
 * add debian packaging "paperwork"
 * perhaps add an action in the makefile to create a .deb
 

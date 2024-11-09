@@ -35,35 +35,35 @@ sysdserv:
 all: $(PROG_NAME) sysvserv sysdserv manpage
 
 install: $(PROG_NAME) manpage
-	mkdir -p $(PREFIX)/sbin
-	mkdir -p $(MANPREFIX)/man1
-	cp -f $(PROG_NAME)     $(PREFIX)/sbin/$(PROG_NAME)
-	cp -f $(PROG_NAME).1   $(MANPREFIX)/man1/$(PROG_NAME).1
-	echo $(PROG_NAME) installed in $(PREFIX)/sbin
+	mkdir -p $(DESTDIR)$(PREFIX)/sbin
+	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+	cp -f $(PROG_NAME)     $(DESTDIR)$(PREFIX)/sbin/$(PROG_NAME)
+	cp -f $(PROG_NAME).1   $(DESTDIR)$(MANPREFIX)/man1/$(PROG_NAME).1
+	echo $(PROG_NAME) installed in $(DESTDIR)$(PREFIX)/sbin
 	rm $(PROG_NAME)
 
 install-sysv: sysvserv
-	mkdir -p $(SERVICE_LOCATION_SYSV)
-	cp -f $(SERV_NAME) $(SERVICE_LOCATION_SYSV)/
-	chmod +x $(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
-	echo $(SERV_NAME) installed in $(SERVICE_LOCATION_SYSV)
+	mkdir -p $(DESTDIR)$(SERVICE_LOCATION_SYSV)
+	cp -f $(SERV_NAME) $(DESTDIR)$(SERVICE_LOCATION_SYSV)/
+	chmod +x $(DESTDIR)$(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
+	echo $(SERV_NAME) installed in $(DESTDIR)$(SERVICE_LOCATION_SYSV)
 	rm $(SERV_NAME)
 
 install-sysd: sysdserv
-	mkdir -p $(SERVICE_LOCATION_SYSD)
-	cp -f $(SERV_NAME).service $(SERVICE_LOCATION_SYSD)/
-	echo $(SERV_NAME).service installed in $(SERVICE_LOCATION_SYSD)
+	mkdir -p $(DESTDIR)$(SERVICE_LOCATION_SYSD)
+	cp -f $(SERV_NAME).service $(DESTDIR)$(SERVICE_LOCATION_SYSD)/
+	echo $(SERV_NAME).service installed in $(DESTDIR)$(SERVICE_LOCATION_SYSD)
 	rm $(SERV_NAME).service
 
 install-all: install install-sysv install-sysd
 
 uninstall:
-	rm $(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
-	rm $(SERVICE_LOCATION_SYSD)/$(SERV_NAME).service
-	rm $(PREFIX)/sbin/$(PROG_NAME)
-	echo $(SERV_NAME) uninstalled from $(SERVICE_LOCATION_SYSV)
-	echo $(SERV_NAME).service uninstalled from $(SERVICE_LOCATION_SYSD)
-	echo $(PROG_NAME) uninstalled from $(PREFIX)/sbin
+	rm $(DESTDIR)$(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
+	rm $(DESTDIR)$(SERVICE_LOCATION_SYSD)/$(SERV_NAME).service
+	rm $(DESTDIR)$(PREFIX)/sbin/$(PROG_NAME)
+	echo $(SERV_NAME) uninstalled from $(DESTDIR)$(SERVICE_LOCATION_SYSV)
+	echo $(SERV_NAME).service uninstalled from $(DESTDIR)$(SERVICE_LOCATION_SYSD)
+	echo $(PROG_NAME) uninstalled from $(DESTDIR)$(PREFIX)/sbin
 
 clean:
 	rm $(PROG_NAME)

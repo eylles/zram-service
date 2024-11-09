@@ -39,6 +39,9 @@ MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
 mem_limit_min=0
 mem_limit_max=100
 
+# zram0
+zrdevice=zram0
+
 echo () { printf %s\\n "$*" ; }
 
 # usage: is_int "number"
@@ -172,23 +175,23 @@ _start_() {
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
         ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100 ))
 
-        zramctl /dev/zram0 -s "$ZRAM_DISK_SIZE" -t "$STREAMS" -a "$ALGORITHM"
+        zramctl "/dev/${zrdevice}" -s "$ZRAM_DISK_SIZE" -t "$STREAMS" -a "$ALGORITHM"
 
         echo "waiting for zram device"
-        until [ -b /dev/zram0 ]; do
+        until [ -b "/dev/${zrdevice}" ]; do
             sleep 1
         done
 
         if [ "${MEM_LIMIT_PERCENTAGE}" -gt 0 ]; then
             MEM_LIMIT_SIZE=$(( MEMORY_TOTAL * MEM_LIMIT_PERCENTAGE / 100 ))
-            echo "${MEM_LIMIT_SIZE}" > /sys/block/zram0/mem_limit
+            echo "${MEM_LIMIT_SIZE}" > "/sys/block/${zrdevice}/mem_limit"
         fi
 
         echo "zram device initiated"
         echo "activating device"
-        mkswap -L "SWAP_ZRAM_0" /dev/zram0 && echo "zram device labeled"
+        mkswap -L "SWAP_ZRAM_0" "/dev/${zrdevice}" && echo "zram device labeled"
         sleep 1
-        swapon -p "$PRIORITY" /dev/zram0 && echo "zram device activated"
+        swapon -p "$PRIORITY" "/dev/${zrdevice}" && echo "zram device activated"
 
         echo "optimizing zram environment"
         # zram optimizations

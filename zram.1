@@ -1,0 +1,181 @@
+.TH ZRAM-SERVICE 1 zram.sh\-VERSION
+.SH NAME
+zram.sh \- a zram setup script
+.SH SYNOPSIS
+.B zram.sh
+.IR actions
+.SH DESCRIPTION
+zram.sh is a script to set up zram on a linux system with some environment
+optimizations.
+.P
+zram.sh was made to be a replacement of zram tools with more configurabilty and
+environment optimizations to get a better performance out of the zram device.
+.P
+The optimizations of the kernel tunables were taken from PopOS and others were
+achieved through testing, the following optimizations to the environment are
+applied:
+.TP
+.B /proc/sys/vm/page-cluster
+    0
+        for the zstd algorithm.
+    1
+        for the rest.
+.TP
+.B /proc/sys/vm/swappiness
+    200
+        Increase the swappiness to pressure the kernel into sending more pages
+        onto the zram device.
+.TP
+.B /proc/sys/vm/vfs_cache_pressure
+    50
+        reclaim dentry and inode caches just half as much as the default 100.
+.TP
+.B /proc/sys/vm/watermark_boost_factor
+    0
+        deactivate watermark boost.
+.TP
+.B /proc/sys/vm/watermark_scale_factor
+    125
+        increase the watermark scale factor from the default 10 so the kernel
+        will retain more memory pages in cache (the zram device).
+.TP
+.B /proc/sys/vm/min_free_kbytes
+    1% of physical ram
+        this will eliminate the possibility of system freezes even when the user
+        has configured the zram service to operate using all of the physical ram
+        space as a zram device.
+.TP
+.B /proc/sys/vm/dirty_ratio
+    30
+        This limits the percentage of dirty memory that can be filled with pages
+        before being committed to disk.
+.TP
+.B /proc/sys/vm//proc/sys/vm/dirty_background_ratio
+    3
+        This limits the percentage of dirty memory pages at which the kernel
+        thread flushers begin writing dirty data.
+.SH ACTIONS
+.TP
+.B "activate" "set"
+Initiate the zram device.
+.TP
+.B "deactivate" "unset"
+Terminate the zram device.
+.TP
+.B "status"
+Show the status of the zram device.
+.SH CONFIGURATION
+.P
+zram.sh lacks on command line options as it's operation is intended to be
+dictated by configuration, for this purpose 2 configuration files are defined:
+.TP
+.B VENDOR_CONFIG
+/etc/default/zram-config
+.TP
+.B ADMIN_CONFIG
+/etc/zram-config
+.P
+The manner in which these configurations are treated is simple,
+.B ADMIN_CONFIG
+takes precedence over
+.B VENDOR_CONFIG
+if neither is present the script will run with the default values, the intention
+to provide 2 configs is so that distributors can ship their own config to
+provide the zram settings they find reasonable for their goals, while the
+machine's administrator can still deploy a different config without having to
+edit the distribution's config.
+.P
+It is important to note that zram.sh does some validation of type and range for
+configuration values so that if any option is out of ranges or not present at
+all the default value will be used.
+.P
+The expected configuration file format is a simple KEY=value plain text file.
+.P
+The following options are available:
+.TP
+.B ALGORITHM
+.P
+Compression algorithm, the average compression factor expected from most
+algorithms is 2x however zstd may be capable of reaching up to 4x compression
+with multiple types of compressible data, zram.sh will try to load the specified
+compression algorithm and fail to default in case it cannot be loaded or a non
+available algorithm was selected
+.TP
+The following compression algorithms are accepted:
+.B lzo
+.B lzo-rle
+.B lz4
+.B lz4hc
+.B zstd
+.B deflate
+.B 842
+
+.T
+    DEFAULT: lz4
+.TP
+.B RAM_PERCENTAGE
+.P
+Percentage of physical ram to assign to the zram device, note however that this
+number is the expected size of
+.B UNCOMPRESSED
+data that will be contained on the zram device, this means that the zram device
+can hold more data than the physical size of ram would allow thus you can for
+example set this at 150 to create a device of 150% of the physical ram, with 8GB
+of physical ram that would yield a zram device of 12GB.
+The max and min percentages are capped as follows.
+.TP
+For the zstd algorithm:
+.T
+        Max 400
+.T
+        Min 5
+.TP
+For the other algorithms:
+.T
+        Max 200
+.T
+        Min 5
+
+.T
+    DEFAULT: 50
+.TP
+.B PRIORITY
+.P
+Swapping priority of the zram device, it determines how much the kernel will
+prioritize swapping to the zram device vs other devices.
+.TP
+Value caps:
+.T
+        Max 32000
+.T
+        Min 200
+
+.T
+    DEFAULT: 200
+.B MEM_LIMIT_PERCENTAGE
+.P
+The limit percentage of memory that will actually be used, so for example if you
+set a RAM_PERCENTAGE of 60 and expect a compression factor of 3x then setting
+MEM_LIMIT_PERCENTAGE to 20 will ensure that the memory limit of the device will
+not be exceeded under any circumstance.
+.TP
+Value caps:
+.T
+        Max 100
+.T
+        Min 0
+
+.T
+    DEFAULT: 0  -- disabled.
+.TP
+.SH AUTHOR
+.EX
+eylles                 <ed.ylles1997 at gmail.com>
+.EE
+.SH HOMEPAGE
+.TP
+Source code:
+.EE
+https://github.com/eylles/zram-service
+.EX
+

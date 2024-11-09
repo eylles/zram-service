@@ -4,3 +4,5 @@ zram
 zram.service
 # ignore "build" script
 zrs
+# ignore built manpage
+zrs.1

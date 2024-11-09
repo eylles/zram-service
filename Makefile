@@ -19,7 +19,8 @@ $(PROG_NAME):
 	chmod 755 $(PROG_NAME)
 
 manpage:
-	sed "s|@VERSION|$(VERSION)|" zram.1 > $(PROG_NAME).1
+	sed "s|@VERSION|$(VERSION)|; s|zram.sh|$(PROG_NAME)|" \
+		zram.1 > $(PROG_NAME).1
 
 sysvserv:
 	sed \

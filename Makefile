@@ -10,12 +10,16 @@ INIT_LSB = zram.init
 SYSV_SCRIPT = $(RAW_SYSV)
 
 PREFIX = /usr/local
+MANPREFIX = $(PREFIX)/share/man
 
 include config.mk
 
 $(PROG_NAME):
-	cp zram.sh $(PROG_NAME)
+	sed "s|@VERSION|$(VERSION)|" zram.sh > $(PROG_NAME)
 	chmod 755 $(PROG_NAME)
+
+manpage:
+	sed "s|@VERSION|$(VERSION)|" zram.1 > $(PROG_NAME).1
 
 sysvserv:
 	sed \
@@ -27,11 +31,13 @@ sysdserv:
 		"s|zram.sh|$(PROG_NAME)|; s|placeholder|$(PREFIX)|" \
 		zram.sysd > $(SERV_NAME).service
 
-all: $(PROG_NAME) sysvserv sysdserv
+all: $(PROG_NAME) sysvserv sysdserv manpage
 
-install: $(PROG_NAME)
+install: $(PROG_NAME) manpage
 	mkdir -p $(PREFIX)/sbin
-	cp -f $(PROG_NAME)  $(PREFIX)/sbin/$(PROG_NAME)
+	mkdir -p $(MANPREFIX)/man1
+	cp -f $(PROG_NAME)     $(PREFIX)/sbin/$(PROG_NAME)
+	cp -f $(PROG_NAME).1   $(MANPREFIX)/man1/$(PROG_NAME).1
 	echo $(PROG_NAME) installed in $(PREFIX)/sbin
 	rm $(PROG_NAME)
 

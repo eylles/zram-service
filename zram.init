@@ -24,16 +24,16 @@ PIDFILE=none
 
 do_start_cmd_override ()
 {
-  /usr/local/sbin/zrs activate || return 2
+    placeholder/sbin/zram.sh activate || return 2
 }
 
 do_stop_cmd_override ()
 {
-  /usr/local/sbin/zrs deactivate || return 2
+    placeholder/sbin/zram.sh deactivate || return 2
 }
 
 do_status_override ()
 {
-    /usr/local/sbin/zrs status
+    placeholder/sbin/zram.sh status
 }
 

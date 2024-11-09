@@ -1,9 +1,17 @@
+.POSIX:
+
 SERV_NAME = zram
 PROG_NAME = zrs
 SERVICE_LOCATION_SYSV = /etc/init.d
 SERVICE_LOCATION_SYSD = /etc/systemd/system
+RAW_SYSV = zram.is
+INIT_LSB = zram.init
+
+SYSV_SCRIPT = $(RAW_SYSV)
 
 PREFIX = /usr/local
+
+include config.mk
 
 $(PROG_NAME):
 	cp zram.sh $(PROG_NAME)
@@ -12,7 +20,7 @@ $(PROG_NAME):
 sysvserv:
 	sed \
 		"s|zram.sh|$(PROG_NAME)|; s|placeholder|$(PREFIX)|" \
-		zram.is > $(SERV_NAME)
+		$(SYSV_SCRIPT) > $(SERV_NAME)
 
 sysdserv:
 	sed \
@@ -37,7 +45,6 @@ install-sysv: sysvserv
 install-sysd: sysdserv
 	mkdir -p $(SERVICE_LOCATION_SYSD)
 	cp -f $(SERV_NAME).service $(SERVICE_LOCATION_SYSD)/
-	chmod +x $(SERVICE_LOCATION_SYSV)/$(SERV_NAME)
 	echo $(SERV_NAME).service installed in $(SERVICE_LOCATION_SYSD)
 	rm $(SERV_NAME).service
 

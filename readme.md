@@ -1,8 +1,11 @@
 # ZRAM service
 
-This is a simple init script compatible with sysvinit to set up zram.
+This is a simple script compatible to set up zram, it is an alternative
+to [zram-tools](https://github.com/highvoltage/zram-tools) and
+[zramswap](https://aur.archlinux.org/packages/zramswap)
 
-This script depends on a posix shell interpreter, core utilities and zramctl
+This script depends on a posix shell interpreter, and core utilities, can
+operate with just busybox if need be.
 
 
 <p align="center">

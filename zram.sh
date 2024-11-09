@@ -255,8 +255,16 @@ _status_() {
     fi
 }
 
+myname="${0##*/}"
+
+show_usage () {
+    printf '%s\n'   "Usage:"
+    printf '\t%s %s\n' "${myname}" "{activate|set|deactivate|unset|status}"
+}
+
 case "$1" in
     activate|set) _start_ ;;
     deactivate|unset) _stop_ ;;
     status) _status_ ;;
+    *) show_usage ;;
 esac

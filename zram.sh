@@ -8,8 +8,12 @@ export PATH
 
 # service name
 ZRAM_SERVICE=zram
-# service config file
-ZRAM_CONFIG=/etc/default/zram-config
+# distro vendor service config file
+VENDOR_CONFIG=/etc/default/zram-config
+# machine administrator service config file
+ADMIN_CONFIG=/etc/zram-config
+# the available config to use
+ZRAM_CONFIG=""
 
 ############
 # defaults #
@@ -95,8 +99,14 @@ _start_() {
         # calculate streams
         STREAMS=$(grep -c ^processor /proc/cpuinfo)
 
+        if [ -r "$VENDOR_CONFIG" ]; then
+            ZRAM_CONFIG="$VENDOR_CONFIG"
+        fi
+        if [ -r "$ADMIN_CONFIG" ]; then
+            ZRAM_CONFIG="$ADMIN_CONFIG"
+        fi
         # Read get values from config if present
-        if [ -r "$ZRAM_CONFIG" ]; then
+        if [ -n "$ZRAM_CONFIG" ]; then
             echo "loading config"
             ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")
             RAM_PERCENTAGE=$(getval "RAM_PERCENTAGE" "$ZRAM_CONFIG")

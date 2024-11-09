@@ -237,10 +237,10 @@ _status_() {
     running=0
     dead=1
     if ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
-        echo "${ZRAM_SERVICE} is not running"
+        echo "${ZRAM_SERVICE} is not set"
         return "$dead"
     else
-        echo "${ZRAM_SERVICE} is running"
+        echo "${ZRAM_SERVICE} is set"
         return "$running"
     fi
 }

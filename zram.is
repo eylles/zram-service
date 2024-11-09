@@ -50,8 +50,8 @@ case "$1" in
         zrs_restart
         ;;
     *)
-        echo "Usage:"
-        echo "    $(basename $0) { start | stop | restart | reload | status }"
+        printf '%s\n' "Usage:"
+        printf '\t%s %s\n' "$0" "{ start | stop | restart | reload | status }"
         exit 1
         ;;
 esac

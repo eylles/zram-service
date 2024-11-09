@@ -94,6 +94,49 @@ getval(){
   done < "$2"
 }
 
+# usage: set_zrdev device size streams algorithm
+#
+#        device: device nameindex i.e. zram0
+#          size: device size in bytes
+#       streams: compression streams i.e. 8
+#     algorithm: compression algorithm i.e. lz4
+set_zrdev () {
+    device="$1"
+    size="$2"
+    streams="$3"
+    algorithm="$4"
+
+    # wait for the required zram files to be created
+    until [ -e "/sys/block/${device}/disksize" ] && [ -e "/dev/${device}" ]
+    do
+        sleep 1
+    done
+
+    if [ -x /usr/sbin/zramctl ]; then
+        # use zramctl
+        zramctl "/dev/${device}" -s "$size" -t "$streams" -a "$algorithm"
+    else
+        # do this manually
+        echo "$size"      > "/sys/block/${device}/disksize"
+        echo "$streams"   > "/sys/block/${device}/max_comp_streams"
+        echo "$algorithm" > "/sys/block/${device}/comp_algorithm"
+    fi
+}
+
+# usage rem_zrdev index
+#
+#         index: device index i.e. 0
+rem_zrdev () {
+    index="$1"
+    if [ -x /usr/sbin/zramctl ]; then
+        # use zramctl
+        zramctl -r "/dev/zram${index}"
+    else
+        # do it manually
+        echo "$index" > "/sys/class/zram-control/hot_remove"
+    fi
+}
+
 _start_() {
     if grep -q zram /proc/swaps; then
         echo "${ZRAM_SERVICE} already set up, exiting"
@@ -143,7 +186,6 @@ _start_() {
             fi
         fi
         modprobe zram num_devices=1
-        sleep 1
 
         # check that the numeric values from config are int
         if ! is_int "$RAM_PERCENTAGE"; then
@@ -175,7 +217,7 @@ _start_() {
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
         ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100 ))
 
-        zramctl "/dev/${zrdevice}" -s "$ZRAM_DISK_SIZE" -t "$STREAMS" -a "$ALGORITHM"
+        set_zrdev "${zrdevice}" "$ZRAM_DISK_SIZE" "$STREAMS" "$ALGORITHM"
 
         echo "waiting for zram device"
         until [ -b "/dev/${zrdevice}" ]; do
@@ -236,7 +278,7 @@ _stop_() {
             echo "deactivating /dev/zram$INDEX"
             swapoff /dev/zram$INDEX && echo "/dev/zram$INDEX deactivated"
             sleep 1
-            zramctl -r /dev/zram$INDEX
+            rem_zrdev "$INDEX"
         done
 
         wait

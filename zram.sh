@@ -56,23 +56,23 @@ is_int() {
 # return type: int
 # usage: min value minimum_value
 min () {
-  if [ "$1" -lt "$2" ]; then
-    result="$2"
-  else
-    result="$1"
-  fi
-  printf '%d\n' "$result"
+    if [ "$1" -lt "$2" ]; then
+        result="$2"
+    else
+        result="$1"
+    fi
+    printf '%d\n' "$result"
 }
 
 # return type: int
 # usage: max value maximum_value
 max () {
-  if [ "$1" -gt "$2" ]; then
-    result="$2"
-  else
-    result="$1"
-  fi
-  printf '%d\n' "$result"
+    if [ "$1" -gt "$2" ]; then
+        result="$2"
+    else
+        result="$1"
+    fi
+    printf '%d\n' "$result"
 }
 
 # Usage: getval "KEY" file
@@ -80,18 +80,18 @@ max () {
 # Description:
 #   Read a KEY=VALUE file and retrieve the Value of the passed KEY
 getval(){
-  # Setting 'IFS' tells 'read' where to split the string.
-  while IFS='=' read -r key val; do
-    # Skip over lines containing comments.
-    # (Lines starting with '#').
-    [ "${key##\#*}" ] || continue
+    # Setting 'IFS' tells 'read' where to split the string.
+    while IFS='=' read -r key val; do
+        # Skip over lines containing comments.
+        # (Lines starting with '#').
+        [ "${key##\#*}" ] || continue
 
-    # '$key' stores the key.
-    # '$val' stores the value.
-    if [ "$key" = "$1" ]; then
-      printf '%s\n' "$val"
-    fi
-  done < "$2"
+        # '$key' stores the key.
+        # '$val' stores the value.
+        if [ "$key" = "$1" ]; then
+            printf '%s\n' "$val"
+        fi
+    done < "$2"
 }
 
 # usage: set_zrdev device size streams algorithm

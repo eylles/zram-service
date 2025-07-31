@@ -54,8 +54,10 @@ is_int() {
 }
 
 # return type: int
-# usage: min value minimum_value
-min () {
+# usage: min_cap value minimum_value
+# description: prevents the value from
+#     being lower than the minimum_value.
+min_cap () {
     if [ "$1" -lt "$2" ]; then
         result="$2"
     else
@@ -65,8 +67,10 @@ min () {
 }
 
 # return type: int
-# usage: max value maximum_value
-max () {
+# usage: max_cap value maximum_value
+# description: prevents the value from
+#     being higher than the maximum_value.
+max_cap () {
     if [ "$1" -gt "$2" ]; then
         result="$2"
     else
@@ -204,14 +208,14 @@ _start_() {
         fi
 
         # prevent out of range values
-        RAM_PERCENTAGE=$(min "$RAM_PERCENTAGE" "$ram_perc_min")
-        RAM_PERCENTAGE=$(max "$RAM_PERCENTAGE" "$ram_perc_max")
+        RAM_PERCENTAGE=$(min_cap "$RAM_PERCENTAGE" "$ram_perc_min")
+        RAM_PERCENTAGE=$(max_cap "$RAM_PERCENTAGE" "$ram_perc_max")
 
-        PRIORITY=$(min "$PRIORITY" "$priority_min")
-        PRIORITY=$(max "$PRIORITY" "$priority_max")
+        PRIORITY=$(min_cap "$PRIORITY" "$priority_min")
+        PRIORITY=$(max_cap "$PRIORITY" "$priority_max")
 
-        MEM_LIMIT_PERCENTAGE=$(min "$MEM_LIMIT_PERCENTAGE" "$mem_limit_min")
-        MEM_LIMIT_PERCENTAGE=$(max "$MEM_LIMIT_PERCENTAGE" "$mem_limit_max")
+        MEM_LIMIT_PERCENTAGE=$(min_cap "$MEM_LIMIT_PERCENTAGE" "$mem_limit_min")
+        MEM_LIMIT_PERCENTAGE=$(max_cap "$MEM_LIMIT_PERCENTAGE" "$mem_limit_max")
 
         MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
         MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
@@ -257,11 +261,11 @@ _start_() {
         # increase the watermark scale factor
         echo "125"    > /proc/sys/vm/watermark_scale_factor
 
-        # set min free kb to %1 of system memory to completely eliminate the
+        # set min_cap free kb to %1 of system memory to completely eliminate the
         # possibility of system freezes
         MINIMUM=$(awk '/MemTotal/ {printf "%.0f", $2 * 0.01}' /proc/meminfo)
         CURRENT=$(cat /proc/sys/vm/min_free_kbytes)
-        min "$CURRENT" "$MINIMUM" > /proc/sys/vm/min_free_kbytes
+        min_cap "$CURRENT" "$MINIMUM" > /proc/sys/vm/min_free_kbytes
 
         echo "${ZRAM_SERVICE} all set up"
     fi

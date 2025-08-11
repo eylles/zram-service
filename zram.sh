@@ -317,10 +317,32 @@ show_version () {
     printf '%s\n' "$version"
 }
 
-case "$1" in
+action=""
+
+## MAIN ##
+# input parsing
+if [ "$#" -eq 0 ]; then
+    show_usage
+fi
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        activate|set|deactivate|unset|status)
+            action="$1"
+            ;;
+        version|-v|--version)
+            show_version
+            exit 0
+            ;;
+        *)
+            show_usage
+            exit 1
+        ;;
+    esac
+    shift
+done
+
+case "$action" in
     activate|set) _start_ ;;
     deactivate|unset) _stop_ ;;
     status) _status_ ;;
-    version|-v|--version) show_version ;;
-    *) show_usage ;;
 esac

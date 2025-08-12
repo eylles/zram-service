@@ -6,6 +6,8 @@
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 export PATH
 
+DRYRUN=""
+
 # service name
 ZRAM_SERVICE=zram
 # distro vendor service config file
@@ -110,20 +112,22 @@ set_zrdev () {
     streams="$3"
     algorithm="$4"
 
-    # wait for the required zram files to be created
-    until [ -e "/sys/block/${device}/disksize" ] && [ -e "/dev/${device}" ]
-    do
-        sleep 1
-    done
+    if [ -z "$DRYRUN" ]; then
+        # wait for the required zram files to be created
+        until [ -e "/sys/block/${device}/disksize" ] && [ -e "/dev/${device}" ]
+        do
+            sleep 1
+        done
 
-    if [ -x /usr/sbin/zramctl ]; then
-        # use zramctl
-        zramctl "/dev/${device}" -s "$size" -t "$streams" -a "$algorithm"
-    else
-        # do this manually
-        echo "$size"      > "/sys/block/${device}/disksize"
-        echo "$streams"   > "/sys/block/${device}/max_comp_streams"
-        echo "$algorithm" > "/sys/block/${device}/comp_algorithm"
+        if [ -x /usr/sbin/zramctl ]; then
+            # use zramctl
+            zramctl "/dev/${device}" -s "$size" -t "$streams" -a "$algorithm"
+        else
+            # do this manually
+            echo "$size"      > "/sys/block/${device}/disksize"
+            echo "$streams"   > "/sys/block/${device}/max_comp_streams"
+            echo "$algorithm" > "/sys/block/${device}/comp_algorithm"
+        fi
     fi
 }
 
@@ -132,122 +136,136 @@ set_zrdev () {
 #         index: device index i.e. 0
 rem_zrdev () {
     index="$1"
-    if [ -x /usr/sbin/zramctl ]; then
-        # use zramctl
-        zramctl -r "/dev/zram${index}"
-    else
-        # do it manually
-        echo "$index" > "/sys/class/zram-control/hot_remove"
+    if [ -z "$DRYRUN" ]; then
+        if [ -x /usr/sbin/zramctl ]; then
+            # use zramctl
+            zramctl -r "/dev/zram${index}"
+        else
+            # do it manually
+            echo "$index" > "/sys/class/zram-control/hot_remove"
+        fi
     fi
 }
 
 _start_() {
-    if grep -q zram /proc/swaps; then
+    if [ -z "$DRYRUN" ] && grep -q zram /proc/swaps; then
         echo "${ZRAM_SERVICE} already set up, exiting"
         return 1
-    else
-        # calculate streams
-        STREAMS=$(grep -c ^processor /proc/cpuinfo)
+    fi
+    # calculate streams
+    STREAMS=$(grep -c ^processor /proc/cpuinfo)
 
-        if [ -r "$VENDOR_CONFIG" ]; then
-            ZRAM_CONFIG="$VENDOR_CONFIG"
-        fi
-        if [ -r "$ADMIN_CONFIG" ]; then
-            ZRAM_CONFIG="$ADMIN_CONFIG"
-        fi
-        # Read get values from config if present
-        if [ -n "$ZRAM_CONFIG" ]; then
-            echo "loading config"
-            ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")
-            RAM_PERCENTAGE=$(getval "RAM_PERCENTAGE" "$ZRAM_CONFIG")
-            PRIORITY=$(getval "PRIORITY" "$ZRAM_CONFIG")
-            MEM_LIMIT_PERCENTAGE=$(getval "MEM_LIMIT_PERCENTAGE" "$ZRAM_CONFIG")
-        fi
+    if [ -r "$VENDOR_CONFIG" ]; then
+        ZRAM_CONFIG="$VENDOR_CONFIG"
+    fi
+    if [ -r "$ADMIN_CONFIG" ]; then
+        ZRAM_CONFIG="$ADMIN_CONFIG"
+    fi
 
-        # make sure algo from config is valid
-        case "$ALGORITHM" in
-            lzo|lzo-rle|lz4|lz4hc|zstd|deflate|842)
-                # zstd can achieve a 4x compression
-                if [ "$ALGORITHM" = "zstd" ]; then
-                    ram_perc_max=400
-                fi
-                ;;
-            *)
-                echo "warning: invalid compression algorithm, using default."
-                echo "algorithm: $default_ALGORITHM"
-                # use default
-                ALGORITHM=$default_ALGORITHM
-                ;;
-        esac
+    # Read get values from config if present
+    if [ -n "$ZRAM_CONFIG" ]; then
+        echo "loading config $ZRAM_CONFIG"
+        ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")
+        RAM_PERCENTAGE=$(getval "RAM_PERCENTAGE" "$ZRAM_CONFIG")
+        PRIORITY=$(getval "PRIORITY" "$ZRAM_CONFIG")
+        MEM_LIMIT_PERCENTAGE=$(getval "MEM_LIMIT_PERCENTAGE" "$ZRAM_CONFIG")
+    fi
 
-        # check if the algorithm is already loaded
-        if grep -q "$ALGORITHM" /proc/modules; then
-            # check if algorithm loads
+    # make sure algo from config is valid
+    case "$ALGORITHM" in
+        lzo|lzo-rle|lz4|lz4hc|zstd|deflate|842)
+            # zstd can achieve a 4x compression
+            if [ "$ALGORITHM" = "zstd" ]; then
+                ram_perc_max=400
+            fi
+            ;;
+        *)
+            echo "warning: invalid compression algorithm, using default."
+            echo "algorithm: $default_ALGORITHM"
+            # use default
+            ALGORITHM=$default_ALGORITHM
+            ;;
+    esac
+
+    # check if the algorithm is already loaded
+    if grep -q "$ALGORITHM" /proc/modules; then
+        # check if algorithm loads
+        if [ -z "$DRYRUN" ]; then
             if modprobe -n "$ALGORITHM" 2>/dev/null; then
                 modprobe "$ALGORITHM"
             else
                 modprobe "$default_ALGORITHM"
             fi
         fi
+    fi
+    if [ -z "$DRYRUN" ]; then
         modprobe zram num_devices=1
+    fi
 
-        # check that the numeric values from config are int
-        if ! is_int "$RAM_PERCENTAGE"; then
-            echo "using default ram percentage: $default_RAM_PERCENTAGE"
-            RAM_PERCENTAGE=$default_RAM_PERCENTAGE
-        fi
+    # check that the numeric values from config are int
+    if ! is_int "$RAM_PERCENTAGE"; then
+        echo "using default ram percentage: $default_RAM_PERCENTAGE"
+        RAM_PERCENTAGE=$default_RAM_PERCENTAGE
+    fi
 
-        if ! is_int "$PRIORITY"; then
-            echo "using default priority: $default_PRIORITY"
-            PRIORITY=$default_PRIORITY
-        fi
+    if ! is_int "$PRIORITY"; then
+        echo "using default priority: $default_PRIORITY"
+        PRIORITY=$default_PRIORITY
+    fi
 
-        if ! is_int "$MEM_LIMIT_PERCENTAGE"; then
-            echo "using default mem limit: $default_MEM_LIMIT_PERCENTAGE"
-            MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
-        fi
+    if ! is_int "$MEM_LIMIT_PERCENTAGE"; then
+        echo "using default mem limit: $default_MEM_LIMIT_PERCENTAGE"
+        MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
+    fi
 
-        # prevent out of range values
-        RAM_PERCENTAGE=$(min_cap "$RAM_PERCENTAGE" "$ram_perc_min")
-        RAM_PERCENTAGE=$(max_cap "$RAM_PERCENTAGE" "$ram_perc_max")
+    # prevent out of range values
+    RAM_PERCENTAGE=$(min_cap "$RAM_PERCENTAGE" "$ram_perc_min")
+    RAM_PERCENTAGE=$(max_cap "$RAM_PERCENTAGE" "$ram_perc_max")
 
-        PRIORITY=$(min_cap "$PRIORITY" "$priority_min")
-        PRIORITY=$(max_cap "$PRIORITY" "$priority_max")
+    PRIORITY=$(min_cap "$PRIORITY" "$priority_min")
+    PRIORITY=$(max_cap "$PRIORITY" "$priority_max")
 
-        MEM_LIMIT_PERCENTAGE=$(min_cap "$MEM_LIMIT_PERCENTAGE" "$mem_limit_min")
-        MEM_LIMIT_PERCENTAGE=$(max_cap "$MEM_LIMIT_PERCENTAGE" "$mem_limit_max")
+    MEM_LIMIT_PERCENTAGE=$(min_cap "$MEM_LIMIT_PERCENTAGE" "$mem_limit_min")
+    MEM_LIMIT_PERCENTAGE=$(max_cap "$MEM_LIMIT_PERCENTAGE" "$mem_limit_max")
 
-        MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-        MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
-        ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100 ))
+    MEMORY_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+    MEMORY_TOTAL=$(( MEMORY_KB * 1024 ))
+    ZRAM_DISK_SIZE=$(( MEMORY_TOTAL * RAM_PERCENTAGE / 100 ))
 
-        set_zrdev "${zrdevice}" "$ZRAM_DISK_SIZE" "$STREAMS" "$ALGORITHM"
+    set_zrdev "${zrdevice}" "$ZRAM_DISK_SIZE" "$STREAMS" "$ALGORITHM"
 
-        echo "waiting for zram device"
+    echo "waiting for zram device"
+    if [ -z "$DRYRUN" ]; then
         until [ -b "/dev/${zrdevice}" ]; do
             sleep 1
         done
+    fi
 
+    if [ -z "$DRYRUN" ]; then
         if [ "${MEM_LIMIT_PERCENTAGE}" -gt 0 ]; then
             MEM_LIMIT_SIZE=$(( MEMORY_TOTAL * MEM_LIMIT_PERCENTAGE / 100 ))
             echo "${MEM_LIMIT_SIZE}" > "/sys/block/${zrdevice}/mem_limit"
         fi
+    fi
 
-        echo "zram device initiated"
-        echo "activating device"
+    echo "zram device initiated"
+    echo "activating device"
+    if [ -z "$DRYRUN" ]; then
         mkswap -L "SWAP_ZRAM_0" "/dev/${zrdevice}" && echo "zram device labeled"
         sleep 1
         swapon -p "$PRIORITY" "/dev/${zrdevice}" && echo "zram device activated"
+    fi
 
-        echo "optimizing zram environment"
-        # zram optimizations
-        if [ "$ALGORITHM" = "zstd" ]; then
-            # zstd needs page clusters 0, else it will have higher latency and
-            # reduced IOPS.
-            clust=0
-        else
-            clust=1
-        fi
+    echo "optimizing zram environment"
+    # zram optimizations
+    if [ "$ALGORITHM" = "zstd" ]; then
+        # zstd needs page clusters 0, else it will have higher latency and
+        # reduced IOPS.
+        clust=0
+    else
+        clust=1
+    fi
+    if [ -z "$DRYRUN" ]; then
         # consecutive page reads in advance, higher values improve compression
         echo "$clust" > /proc/sys/vm/page-cluster
         # higher values encourage the kernel to move pages to swap
@@ -260,36 +278,40 @@ _start_() {
         echo "0"      > /proc/sys/vm/watermark_boost_factor
         # increase the watermark scale factor
         echo "125"    > /proc/sys/vm/watermark_scale_factor
-
-        # set min_cap free kb to %1 of system memory to completely eliminate the
-        # possibility of system freezes
-        MINIMUM=$(awk '/MemTotal/ {printf "%.0f", $2 * 0.01}' /proc/meminfo)
-        CURRENT=$(cat /proc/sys/vm/min_free_kbytes)
-        min_cap "$CURRENT" "$MINIMUM" > /proc/sys/vm/min_free_kbytes
-
-        echo "${ZRAM_SERVICE} all set up"
     fi
+
+    # set min_cap free kb to %1 of system memory to completely eliminate the
+    # possibility of system freezes
+    MINIMUM=$(awk '/MemTotal/ {printf "%.0f", $2 * 0.01}' /proc/meminfo)
+    CURRENT=$(cat /proc/sys/vm/min_free_kbytes)
+    if [ -z "$DRYRUN" ]; then
+        min_cap "$CURRENT" "$MINIMUM" > /proc/sys/vm/min_free_kbytes
+    fi
+
+    echo "${ZRAM_SERVICE} all set up"
 }
 
 _stop_() {
-    if ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
+    if [ -z "$DRYRUN" ] && ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
         echo "${ZRAM_SERVICE} NOT running, exiting"
         return 1
-    else
-        for n in $(seq $(grep -c "/dev/zram" /proc/swaps))
-        do
-            INDEX=$((n - 1))
-            echo "deactivating /dev/zram$INDEX"
+    fi
+    for n in $(seq $(grep -c "/dev/zram" /proc/swaps)); do
+        INDEX=$((n - 1))
+        echo "deactivating /dev/zram$INDEX"
+        if [ -z "$DRYRUN" ]; then
             swapoff /dev/zram$INDEX && echo "/dev/zram$INDEX deactivated"
             sleep 1
-            rem_zrdev "$INDEX"
-        done
+        fi
+        rem_zrdev "$INDEX"
+    done
 
+    if [ -z "$DRYRUN" ]; then
         wait
         sleep 1
         modprobe -r zram
-        echo "${ZRAM_SERVICE} stopped"
     fi
+    echo "${ZRAM_SERVICE} stopped"
 }
 
 _status_() {
@@ -326,6 +348,7 @@ if [ "$#" -eq 0 ]; then
 fi
 while [ "$#" -gt 0 ]; do
     case "$1" in
+        dryrun|-n|--dryrun)  DRYRUN=1  ;;
         activate|set|deactivate|unset|status)
             action="$1"
             ;;

@@ -147,9 +147,15 @@ rem_zrdev () {
     fi
 }
 
+myname="${0##*/}"
+
+msg () {
+    printf '%s: %s\n' "${myname}" "$*"
+}
+
 _start_() {
     if [ -z "$DRYRUN" ] && grep -q zram /proc/swaps; then
-        echo "${ZRAM_SERVICE} already set up, exiting"
+        msg "${ZRAM_SERVICE} already set up, exiting"
         return 1
     fi
     # calculate streams
@@ -164,7 +170,7 @@ _start_() {
 
     # Read get values from config if present
     if [ -n "$ZRAM_CONFIG" ]; then
-        echo "loading config $ZRAM_CONFIG"
+        msg "loading config $ZRAM_CONFIG"
         ALGORITHM=$(getval "ALGORITHM" "$ZRAM_CONFIG")
         RAM_PERCENTAGE=$(getval "RAM_PERCENTAGE" "$ZRAM_CONFIG")
         PRIORITY=$(getval "PRIORITY" "$ZRAM_CONFIG")
@@ -180,8 +186,8 @@ _start_() {
             fi
             ;;
         *)
-            echo "warning: invalid compression algorithm, using default."
-            echo "algorithm: $default_ALGORITHM"
+            msg "warning: invalid compression algorithm, using default."
+            msg "algorithm: $default_ALGORITHM"
             # use default
             ALGORITHM=$default_ALGORITHM
             ;;
@@ -204,17 +210,17 @@ _start_() {
 
     # check that the numeric values from config are int
     if ! is_int "$RAM_PERCENTAGE"; then
-        echo "using default ram percentage: $default_RAM_PERCENTAGE"
+        msg "using default ram percentage: $default_RAM_PERCENTAGE"
         RAM_PERCENTAGE=$default_RAM_PERCENTAGE
     fi
 
     if ! is_int "$PRIORITY"; then
-        echo "using default priority: $default_PRIORITY"
+        msg "using default priority: $default_PRIORITY"
         PRIORITY=$default_PRIORITY
     fi
 
     if ! is_int "$MEM_LIMIT_PERCENTAGE"; then
-        echo "using default mem limit: $default_MEM_LIMIT_PERCENTAGE"
+        msg "using default mem limit: $default_MEM_LIMIT_PERCENTAGE"
         MEM_LIMIT_PERCENTAGE=$default_MEM_LIMIT_PERCENTAGE
     fi
 
@@ -256,7 +262,7 @@ _start_() {
         swapon -p "$PRIORITY" "/dev/${zrdevice}" && echo "zram device activated"
     fi
 
-    echo "optimizing zram environment"
+    msg "optimizing zram environment"
     # zram optimizations
     if [ "$ALGORITHM" = "zstd" ]; then
         # zstd needs page clusters 0, else it will have higher latency and
@@ -288,17 +294,17 @@ _start_() {
         min_cap "$CURRENT" "$MINIMUM" > /proc/sys/vm/min_free_kbytes
     fi
 
-    echo "${ZRAM_SERVICE} all set up"
+    msg "${ZRAM_SERVICE} all set up"
 }
 
 _stop_() {
     if [ -z "$DRYRUN" ] && ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
-        echo "${ZRAM_SERVICE} NOT running, exiting"
+        msg "${ZRAM_SERVICE} NOT running, exiting"
         return 1
     fi
     for n in $(seq $(grep -c "/dev/zram" /proc/swaps)); do
         INDEX=$((n - 1))
-        echo "deactivating /dev/zram$INDEX"
+        msg "deactivating /dev/zram$INDEX"
         if [ -z "$DRYRUN" ]; then
             swapoff /dev/zram$INDEX && echo "/dev/zram$INDEX deactivated"
             sleep 1
@@ -311,22 +317,20 @@ _stop_() {
         sleep 1
         modprobe -r zram
     fi
-    echo "${ZRAM_SERVICE} stopped"
+    msg "${ZRAM_SERVICE} stopped"
 }
 
 _status_() {
     running=0
     dead=1
     if ! grep -c "/dev/zram" /proc/swaps >/dev/null; then
-        echo "${ZRAM_SERVICE} is not set"
+        msg "${ZRAM_SERVICE} is not set"
         return "$dead"
     else
-        echo "${ZRAM_SERVICE} is set"
+        msg "${ZRAM_SERVICE} is set"
         return "$running"
     fi
 }
-
-myname="${0##*/}"
 
 show_usage () {
     printf '%s\n'   "Usage:"

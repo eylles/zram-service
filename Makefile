@@ -14,6 +14,8 @@ MANPREFIX = $(PREFIX)/share/man
 
 include config.mk
 
+prog: $(PROG_NAME) manpage
+
 $(PROG_NAME):
 	sed "s|@VERSION|$(VERSION)|" zram.sh > $(PROG_NAME)
 	chmod 755 $(PROG_NAME)
@@ -32,9 +34,9 @@ sysdserv:
 		"s|zram.sh|$(PROG_NAME)|; s|placeholder|$(PREFIX)|" \
 		zram.sysd > $(SERV_NAME).service
 
-all: $(PROG_NAME) sysvserv sysdserv manpage
+all: prog sysvserv sysdserv
 
-install: $(PROG_NAME) manpage
+install: prog
 	mkdir -p $(DESTDIR)$(PREFIX)/sbin
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f $(PROG_NAME)     $(DESTDIR)$(PREFIX)/sbin/$(PROG_NAME)

@@ -2,7 +2,7 @@
 zram
 # ignore "built" systemd unit
 zram.service
-# ignore "build" script
+# ignore "built" script
 zrs
 # ignore built manpage
 zrs.1

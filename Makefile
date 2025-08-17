@@ -66,8 +66,6 @@ uninstall:
 	echo $(PROG_NAME) uninstalled from $(DESTDIR)$(PREFIX)/sbin
 
 clean:
-	rm $(PROG_NAME)
-	rm $(SERV_NAME)
-	rm $(SERV_NAME).service
+	rm -f $(PROG_NAME) $(PROG_NAME).1 $(SERV_NAME) $(SERV_NAME).service
 
 .PHONY: install uninstall clean
